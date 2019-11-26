@@ -17,6 +17,50 @@
 #define SEC_LABEL "user.bmstu_exe"
 //#define SEC_LABEL "security.bmstu_exe"
 
+void add_gid(char *path, int gid) {
+  char *attr;
+  int *data;
+  int ret = EXIT_FAILURE;
+  ssize_t size;
+
+  size = getxattr(path, SEC_LABEL, NULL, 0);
+  if (size < 0) {
+    perror("[-] getxattr failed");
+    return;
+  }
+
+  attr = malloc(size + sizeof(int));
+  if (attr == NULL) {
+    printf("No memory.\n");
+    return;
+  }
+
+  ret = getxattr(path, SEC_LABEL, attr, size);
+  if (ret < 0) {
+    perror("[-] getxattr failed");
+    return;
+  }
+
+  data = malloc(size - 1 + sizeof(int));
+  if (data == NULL) {
+    printf("No memory.\n");
+    return;
+  }
+
+  memcpy(data, attr, size - 1);
+
+  data[(size - 1) / sizeof(int)] = gid;
+
+  memcpy(attr, data, size - 1 + sizeof(int));
+  attr[size + sizeof(int)] = '\0';
+
+  ret = setxattr(path, SEC_LABEL, attr, size + sizeof(int), 0);
+
+  if (ret < 0) {
+    perror("[-] setxattr failed");
+  }
+}
+
 void set_xattr(char *path) {
   char *attr;
   int *data;
@@ -80,9 +124,9 @@ void read_xattr(char *path) {
     return;
   }
 
-  memcpy(data, attr, sizeof(int) * 3);
+  memcpy(data, attr, size - 1);
 
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < (size - 1) / sizeof(int); i++) {
     printf("%d ", data[i]);
   }
 
@@ -105,6 +149,15 @@ int main(int argc, char **argv) {
 
   if (strcmp(argv[1], "read") == 0) {
     read_xattr(argv[2]);
+  }
+
+  if (strcmp(argv[1], "add") == 0) {
+    if (argv[3] == NULL) {
+      printf("Usage: xattr_util add <gid> <file>\n");
+      return 0;
+    }
+
+    add_gid(argv[3], atoi(argv[2]));
   }
 
   return 0;
