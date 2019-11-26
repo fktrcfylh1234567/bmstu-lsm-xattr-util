@@ -17,6 +17,29 @@
 #define SEC_LABEL "user.bmstu_exe"
 //#define SEC_LABEL "security.bmstu_exe"
 
+void set_gid(char *path, int gid) {
+  char *attr;
+  int data[1];
+  int ret = EXIT_FAILURE;
+
+  attr = malloc(sizeof(int) + 1);
+  if (attr == NULL) {
+    printf("No memory.\n");
+    return;
+  }
+
+  data[0] = gid;
+
+  memcpy(attr, data, sizeof(int));
+  attr[sizeof(int) + 1] = '\0';
+
+  ret = setxattr(path, SEC_LABEL, attr, sizeof(int) + 1, 0);
+
+  if (ret < 0) {
+    perror("[-] setxattr failed");
+  }
+}
+
 void add_gid(char *path, int gid) {
   char *attr;
   int *data;
@@ -25,7 +48,7 @@ void add_gid(char *path, int gid) {
 
   size = getxattr(path, SEC_LABEL, NULL, 0);
   if (size < 0) {
-    perror("[-] getxattr failed");
+    set_gid(path, gid);
     return;
   }
 
@@ -55,39 +78,6 @@ void add_gid(char *path, int gid) {
   attr[size + sizeof(int)] = '\0';
 
   ret = setxattr(path, SEC_LABEL, attr, size + sizeof(int), 0);
-
-  if (ret < 0) {
-    perror("[-] setxattr failed");
-  }
-}
-
-void set_xattr(char *path) {
-  char *attr;
-  int *data;
-  int ret = EXIT_FAILURE;
-  int count = 3;
-  int buff_size = count * sizeof(int) + 1;
-
-  attr = malloc(buff_size);
-  if (attr == NULL) {
-    printf("No memory.\n");
-    return;
-  }
-
-  data = calloc(count, sizeof(int));
-  if (data == NULL) {
-    printf("No memory.\n");
-    return;
-  }
-
-  data[0] = 1000;
-  data[1] = 2000;
-  data[2] = 3000;
-
-  memcpy(attr, data, buff_size - 1);
-  attr[buff_size] = '\0';
-
-  ret = setxattr(path, SEC_LABEL, attr, buff_size, 0);
 
   if (ret < 0) {
     perror("[-] setxattr failed");
@@ -141,10 +131,6 @@ int main(int argc, char **argv) {
     printf("xattr_util add <gid> <file>\n");
     printf("xattr_util remove <gid> <file>\n");
     return 0;
-  }
-
-  if (strcmp(argv[1], "set") == 0) {
-    set_xattr(argv[2]);
   }
 
   if (strcmp(argv[1], "read") == 0) {
