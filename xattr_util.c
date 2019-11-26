@@ -40,6 +40,16 @@ void set_gid(char *path, int gid) {
   }
 }
 
+void clear_xattr(char *path) {
+  int ret = EXIT_FAILURE;
+
+  ret = removexattr(path, SEC_LABEL);
+
+  if (ret < 0) {
+    perror("[-] removexattr failed");
+  }
+}
+
 void add_gid(char *path, int gid) {
   char *attr;
   int *data;
@@ -130,6 +140,7 @@ int main(int argc, char **argv) {
     printf("xattr_util read <file>\n");
     printf("xattr_util add <gid> <file>\n");
     printf("xattr_util remove <gid> <file>\n");
+    printf("xattr_util clear <file>\n");
     return 0;
   }
 
@@ -144,6 +155,10 @@ int main(int argc, char **argv) {
     }
 
     add_gid(argv[3], atoi(argv[2]));
+  }
+
+  if (strcmp(argv[1], "clear") == 0) {
+    clear_xattr(argv[2]);
   }
 
   return 0;
