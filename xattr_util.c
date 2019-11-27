@@ -82,6 +82,7 @@ void add_gid(char *path, int gid) {
 
   memcpy(data, attr, size - 1);
 
+  // checking if gid already exists
   for (int i = 0; i < (size - 1) / sizeof(int); i++) {
     if (data[i] == gid) {
       return;
@@ -133,19 +134,22 @@ void rm_gid(char *path, int gid) {
   memcpy(data, attr, size - 1);
 
   int i = 0;
-  int count = (size - 1) / sizeof(int);
+  int count = (size - 1) / sizeof(int); // Number of gids
 
+  // searching for gid
   for (; i < count; i++) {
     if (data[i] == gid) {
       break;
     }
   }
 
+  // gid no exists
   if (i == count) {
     printf("No such id.\n");
     return;
   }
 
+  // shift elements to the left
   for (; i < count - 1; i++) {
     data[i] = data[i + 1];
   }
