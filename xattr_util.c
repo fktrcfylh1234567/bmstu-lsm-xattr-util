@@ -14,26 +14,14 @@
 #include <sys/xattr.h>
 #include <unistd.h>
 
-#define SEC_LABEL "user.bmstu_exe"
-//#define SEC_LABEL "security.bmstu_exe"
+#define SEC_LABEL "security.bmstu_exe"
 
 void set_gid(char *path, int gid) {
-  char *attr;
   int data[1];
   int ret = EXIT_FAILURE;
 
-  attr = malloc(sizeof(int) + 1);
-  if (attr == NULL) {
-    printf("No memory.\n");
-    return;
-  }
-
   data[0] = gid;
-
-  memcpy(attr, data, sizeof(int));
-  attr[sizeof(int) + 1] = '\0';
-
-  ret = setxattr(path, SEC_LABEL, attr, sizeof(int) + 1, 0);
+  ret = setxattr(path, SEC_LABEL, (char *)data, sizeof(int) + 1, 0);
 
   if (ret < 0) {
     perror("[-] setxattr failed");
