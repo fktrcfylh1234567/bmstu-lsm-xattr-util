@@ -172,6 +172,11 @@ void print_xattr(char *path) {
 }
 
 int main(int argc, char **argv) {
+  if (argc < 2) {
+    printf("No command specified. Type --help for usage.\n");
+    return 0;
+  }
+
   if (strcmp(argv[1], "--help") == 0) {
     printf("Usage:\n");
     printf("xattr_util print <file>\n");
@@ -182,8 +187,7 @@ int main(int argc, char **argv) {
   }
 
   if (argc < 3) {
-    printf("Invalid arguments specified.\n");
-    printf("type --help for usage.\n");
+    printf("Invalid arguments specified. Type --help for usage.\n");
     return 0;
   }
 
@@ -198,8 +202,7 @@ int main(int argc, char **argv) {
   }
 
   if (argc < 4) {
-    printf("Invalid arguments specified.\n");
-    printf("type --help for usage.\n");
+    printf("Invalid arguments specified. Type --help for usage.\n");
     return 0;
   }
 
