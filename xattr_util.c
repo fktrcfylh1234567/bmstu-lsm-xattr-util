@@ -74,13 +74,7 @@ void add_gid(char *path, int gid) {
     return;
   }
 
-  data = malloc(size - 1 + sizeof(int));
-  if (data == NULL) {
-    printf("No memory.\n");
-    return;
-  }
-
-  memcpy(data, attr, size - 1);
+  data = (int *)attr;
 
   // checking if gid already exists
   for (int i = 0; i < (size - 1) / sizeof(int); i++) {
@@ -90,8 +84,6 @@ void add_gid(char *path, int gid) {
   }
 
   data[(size - 1) / sizeof(int)] = gid;
-
-  memcpy(attr, data, size - 1 + sizeof(int));
   attr[size + sizeof(int)] = '\0';
 
   ret = setxattr(path, SEC_LABEL, attr, size + sizeof(int), 0);
@@ -125,13 +117,7 @@ void rm_gid(char *path, int gid) {
     return;
   }
 
-  data = malloc(size - 1);
-  if (data == NULL) {
-    printf("No memory.\n");
-    return;
-  }
-
-  memcpy(data, attr, size - 1);
+  data = (int *)attr;
 
   int i = 0;
   int count = (size - 1) / sizeof(int); // Number of gids
@@ -154,7 +140,6 @@ void rm_gid(char *path, int gid) {
     data[i] = data[i + 1];
   }
 
-  memcpy(attr, data, size - 1 - sizeof(int));
   attr[size - sizeof(int)] = '\0';
 
   ret = setxattr(path, SEC_LABEL, attr, size - sizeof(int), 0);
@@ -188,13 +173,7 @@ void print_xattr(char *path) {
     return;
   }
 
-  data = malloc(size - 1);
-  if (data == NULL) {
-    printf("No memory.\n");
-    return;
-  }
-
-  memcpy(data, attr, size - 1);
+  data = (int *)attr;
 
   for (int i = 0; i < (size - 1) / sizeof(int); i++) {
     printf("%d ", data[i]);
@@ -204,8 +183,7 @@ void print_xattr(char *path) {
 }
 
 int main(int argc, char **argv) {
-  if (argc < 3) {
-    printf("Invalid arguments specified.\n");
+  if (strcmp(argv[1], "--help") == 0) {
     printf("Usage:\n");
     printf("xattr_util print <file>\n");
     printf("xattr_util add <gid> <file>\n");
@@ -214,33 +192,35 @@ int main(int argc, char **argv) {
     return 0;
   }
 
+  if (argc < 3) {
+    printf("Invalid arguments specified.\n");
+    printf("type --help for usage.\n");
+    return 0;
+  }
+
   if (strcmp(argv[1], "print") == 0) {
     print_xattr(argv[2]);
     return 0;
   }
 
-  if (strcmp(argv[1], "add") == 0) {
-    if (argv[3] == NULL) {
-      printf("Usage: xattr_util add <gid> <file>\n");
-      return 0;
-    }
+  if (strcmp(argv[1], "clear") == 0) {
+    clear_xattr(argv[2]);
+    return 0;
+  }
 
+  if (argc < 4) {
+    printf("Invalid arguments specified.\n");
+    printf("type --help for usage.\n");
+    return 0;
+  }
+
+  if (strcmp(argv[1], "add") == 0) {
     add_gid(argv[3], atoi(argv[2]));
     return 0;
   }
 
   if (strcmp(argv[1], "remove") == 0) {
-    if (argv[3] == NULL) {
-      printf("Usage: xattr_util remove <gid> <file>\n");
-      return 0;
-    }
-
     rm_gid(argv[3], atoi(argv[2]));
-    return 0;
-  }
-
-  if (strcmp(argv[1], "clear") == 0) {
-    clear_xattr(argv[2]);
     return 0;
   }
 
