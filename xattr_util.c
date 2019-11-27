@@ -82,6 +82,12 @@ void add_gid(char *path, int gid) {
 
   memcpy(data, attr, size - 1);
 
+  for (int i = 0; i < (size - 1) / sizeof(int); i++) {
+    if (data[i] == gid) {
+      return;
+    }
+  }
+
   data[(size - 1) / sizeof(int)] = gid;
 
   memcpy(attr, data, size - 1 + sizeof(int));
