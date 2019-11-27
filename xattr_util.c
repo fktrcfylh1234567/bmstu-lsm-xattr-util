@@ -1,18 +1,9 @@
 #define _GNU_SOURCE
 
-#include <fcntl.h>
-#include <stdbool.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <sys/syscall.h>
-#include <sys/types.h>
-#include <sys/wait.h>
 #include <sys/xattr.h>
-#include <unistd.h>
 
 #define SEC_LABEL "security.bmstu_exe"
 
@@ -59,6 +50,7 @@ void add_gid(char *path, int gid) {
   ret = getxattr(path, SEC_LABEL, attr, size);
   if (ret < 0) {
     perror("[-] getxattr failed");
+    free(attr);
     return;
   }
 
@@ -67,6 +59,7 @@ void add_gid(char *path, int gid) {
   // checking if gid already exists
   for (int i = 0; i < (size - 1) / sizeof(int); i++) {
     if (data[i] == gid) {
+      free(attr);
       return;
     }
   }
@@ -79,6 +72,8 @@ void add_gid(char *path, int gid) {
   if (ret < 0) {
     perror("[-] setxattr failed");
   }
+
+  free(attr);
 }
 
 void rm_gid(char *path, int gid) {
@@ -102,6 +97,7 @@ void rm_gid(char *path, int gid) {
   ret = getxattr(path, SEC_LABEL, attr, size);
   if (ret < 0) {
     perror("[-] getxattr failed");
+    free(attr);
     return;
   }
 
@@ -120,6 +116,7 @@ void rm_gid(char *path, int gid) {
   // gid no exists
   if (i == count) {
     printf("No such id.\n");
+    free(attr);
     return;
   }
 
@@ -135,6 +132,8 @@ void rm_gid(char *path, int gid) {
   if (ret < 0) {
     perror("[-] setxattr failed");
   }
+
+  free(attr);
 }
 
 void print_xattr(char *path) {
@@ -158,6 +157,7 @@ void print_xattr(char *path) {
   ret = getxattr(path, SEC_LABEL, attr, size);
   if (ret < 0) {
     perror("[-] getxattr failed");
+    free(attr);
     return;
   }
 
@@ -168,6 +168,7 @@ void print_xattr(char *path) {
   }
 
   printf("\n");
+  free(attr);
 }
 
 int main(int argc, char **argv) {
